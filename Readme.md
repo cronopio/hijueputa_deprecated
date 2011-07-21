@@ -1,4 +1,4 @@
-==Hijueputa==
+## Hijueputa
 
 Es un juego de apuestas con dados, el objetivo es llegar a 31 primero que todos los demas jugadores.
 
