@@ -4,8 +4,10 @@
  */
 
 var express = require('express');
+var io = require('socket.io');
 
 var app = module.exports = express.createServer();
+io = io.listen(app);
 
 // Configuration
 
@@ -31,6 +33,13 @@ app.configure('production', function(){
 app.get('/', function(req, res){
   res.render('index', {
     title: 'Express'
+  });
+});
+
+io.sockets.on('connection', function(s){
+  s.emit('news', {hello:'world'});
+  s.on('otroEvent', function(data){
+    console.log(data);
   });
 });
 
