@@ -6,3 +6,27 @@ body {
 a {
   color: #00B7FF;
 }
+
+#salon {
+  width: 800px;
+  display: table;
+}
+
+#puestos {
+  position: relative
+  width: 100%;
+  display: table-row;
+}
+
+#puesto1, #puesto2, #puesto3, #puesto4, #puesto5, #puesto6 {
+  display: table-cell;
+}
+
+#dado {
+  position: relative;
+  width: 80%;
+  display: table-row;
+}
+#valorDado {
+  
+}

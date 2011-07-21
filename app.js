@@ -28,20 +28,35 @@ app.configure('production', function(){
   app.use(express.errorHandler()); 
 });
 
+var jugadores = Array();
+
+function tirarDado(){
+  return Math.floor(Math.random()*6)+1;
+}
+
 // Routes
 
 app.get('/', function(req, res){
   res.render('index', {
-    title: 'Express'
+    title: 'Hijueputa',
+    jugadores: jugadores
   });
 });
 
 io.sockets.on('connection', function(s){
   s.emit('news', {hello:'world'});
-  s.on('otroEvent', function(data){
-    console.log(data);
+  s.on('sentarse', function(data){
+    jugadores[data.puesto] = {nick:data.nick,puntos:0,puesto:data.puesto};
+    s.broadcast.emit('sentado', {jugadores:jugadores, nuevo:jugadores[data.puesto]});
+    s.emit('sentado', {jugadores:jugadores, nuevo:jugadores[data.puesto]});
+  });
+  s.on('iniciar', function(data){
+    s.broadcast.emit('juegaotro', {turno:data.puesto});
+    s.emit('turno', {jugador:jugadores[data.puesto]});
   });
 });
+
+
 
 app.listen(3000);
 console.log("Express server listening on port %d", app.address().port);
