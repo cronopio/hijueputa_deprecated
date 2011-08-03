@@ -13,7 +13,7 @@ a {
 }
 
 #puestos {
-  position: relative
+  position: relative;
   width: 100%;
   display: table-row;
 }
@@ -27,6 +27,8 @@ a {
   width: 80%;
   display: table-row;
 }
+
 #valorDado {
-  
+  font-size: 150%;
+  color: red;
 }

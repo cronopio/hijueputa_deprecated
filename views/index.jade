@@ -1,18 +1,38 @@
 #salon
   #dado
     #valorDado
+    label Acumulado en el turno
+    #acumulado
   #puestos
     #puesto1
+      #nick1
+      label Acumulado: 
+      #acumulado1
       button(onclick='javascript:sentarse(1)') Sentarse
     #puesto2
+      #nick2
+      label Acumulado: 
+      #acumulado2
       button(onclick='javascript:sentarse(2)') Sentarse
     #puesto3
+      #nick3
+      label Acumulado: 
+      #acumulado3
       button(onclick='javascript:sentarse(3)') Sentarse
     #puesto4
+      #nick4
+      label Acumulado: 
+      #acumulado4
       button(onclick='javascript:sentarse(4)') Sentarse
     #puesto5
+      #nick5
+      label Acumulado: 
+      #acumulado5
       button(onclick='javascript:sentarse(5)') Sentarse
     #puesto6
+      #nick6
+      label Acumulado: 
+      #acumulado6
       button(onclick='javascript:sentarse(6)') Sentarse
   #mando
     button(onclick='javascript:jugar()') Jugar Ya!
@@ -22,37 +42,48 @@ script
   var s = io.connect();
   var puesto = 0;
   s.on('sentado', function(data){
-    $('#puesto'+data.nuevo.puesto).html('<p>'+data.nuevo.nick+"</p><br><p id='acumulado'>Acumulado: "+data.nuevo.puntos);
+    $('#nick'+data.nuevo.puesto).html('<p>'+data.nuevo.nick+'</p>');
+    $('#acumulado'+data.nuevo.puesto).html(data.nuevo.puntos);
+    //$('#puesto'+data.nuevo.puesto).html('<p>'+data.nuevo.nick+"</p><br><p id='acumulado'>Acumulado: "+data.nuevo.puntos);
   });
   
   s.on('juegaotro', function(data){
-    $('#puesto'+data.turno).css('background-color', '#FFF284').prepend('TURNO');
+    $('#puesto'+data.turno).css('background-color', '#FFF284');
+    $('#mando').empty();
   });
   
   s.on('turno', function(data){
-    console.log(data.jugador.puntos)
+    console.log(data.jugador);
     var original = data.jugador.puntos;
-    var acumulado = original;
+    var acumulado = 0;
     var tirar = $('<button></button>')
     .click(function(){
       var valor = Math.floor(Math.random()*6)+1;
       console.log('Saco '+valor);
-      if (valor == 1){
-        // Pierde el turno y pone ficha
-        alert('perdio');
-      } else {
-        acumulado+=valor;
-        console.log(acumulado);
-        if (acumulado == 31) {
-          alert('GANASTE :-)');
-        } else {
-         $('#acumulado').html(acumulado); 
-        }
-      }
+      $('#valorDado').html(valor);
+      acumulado+=valor
+      s.emit('valorDado', {valor:valor,puesto:data.jugador.puesto,acumulado:acumulado});
     }).html('Lanzar');
     var plantar = $('<button></button>').html('Plantar');
     $('#mando').empty().append(tirar).append(plantar);
   });
+  
+  s.on('nuevoValorDado', function(data){
+    $('#valorDado').html(data.valor);
+  });
+  
+  s.on('gano', function(data){
+    alert('El jugador '+data.nick+' gano el juego');
+  });
+  
+  s.on('perdio', function(data){
+    alert('El jugador '+data.nick+' perdio el turno');
+  });
+  
+  s.on('nuevoAcumulado', function(data){
+    $('#acumulado').html(data.acumulado);
+  });
+  
   function sentarse(p){
     var nick = prompt('Cual es su nick?');
     s.emit('sentarse', {puesto:p, nick:nick});

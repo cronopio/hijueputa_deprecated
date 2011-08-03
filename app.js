@@ -54,6 +54,21 @@ io.sockets.on('connection', function(s){
     s.broadcast.emit('juegaotro', {turno:data.puesto});
     s.emit('turno', {jugador:jugadores[data.puesto]});
   });
+  s.on('valorDado', function(data){
+    if (data.valor == 1){
+      s.broadcast.emit('perdio', {nick:jugadores[data.puesto].nick});
+      s.emit('perdio', {nick:jugadores[data.puesto].nick});
+    } else {
+      if ((jugadores[data.puesto].puntos+data.acumulado) >= 31){
+        s.emit('gano', {nick:jugadores[data.puesto].nick});
+        s.broadcast.emit('gano', {nick:jugadores[data.puesto].nick});
+      } else {
+        s.emit('nuevoAcumulado', {acumulado:data.acumulado});
+        s.broadcast.emit('nuevoAcumulado', {acumulado:data.acumulado});
+      }
+    }
+    s.broadcast.emit('nuevoValorDado', data);
+  });
 });
 
 
