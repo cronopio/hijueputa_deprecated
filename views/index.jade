@@ -49,13 +49,17 @@ script
   
   s.on('juegaotro', function(data){
     $('#puesto'+data.turno).css('background-color', '#FFF284');
+    $('#puesto'+data.anterior).css('background-color', '#FFFFFF');
     $('#mando').empty();
+    $('#acumulado').html(0);
   });
   
   s.on('turno', function(data){
     console.log(data.jugador);
+    $('#puestos').children().css('background-color', '#FFFFFF');
     var original = data.jugador.puntos;
     var acumulado = 0;
+    $('#acumulado').html(acumulado);
     var tirar = $('<button></button>')
     .click(function(){
       var valor = Math.floor(Math.random()*6)+1;
@@ -64,7 +68,12 @@ script
       acumulado+=valor
       s.emit('valorDado', {valor:valor,puesto:data.jugador.puesto,acumulado:acumulado});
     }).html('Lanzar');
-    var plantar = $('<button></button>').html('Plantar');
+    var plantar = $('<button></button>').html('Plantar')
+    .click(function(){
+      s.emit('plantar',{puntos:acumulado});
+      $('#acumulado'+data.jugador.puesto).html(data.jugador.puntos+acumulado);
+      $('#acumulado').html(0);
+    });
     $('#mando').empty().append(tirar).append(plantar);
   });
   
@@ -74,15 +83,21 @@ script
   
   s.on('gano', function(data){
     alert('El jugador '+data.nick+' gano el juego');
+    location.reload();
   });
   
   s.on('perdio', function(data){
     alert('El jugador '+data.nick+' perdio el turno');
     $('#mando').empty()
+    $('#acumulado').html(0);
   });
   
   s.on('nuevoAcumulado', function(data){
     $('#acumulado').html(data.acumulado);
+  });
+  
+  s.on('nuevosPuntos', function(data){
+    $('#acumulado'+data.jugador.puesto).html(data.jugador.puntos);
   });
   
   function sentarse(p){

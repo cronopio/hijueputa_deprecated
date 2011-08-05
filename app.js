@@ -64,7 +64,7 @@ io.sockets.on('connection', function(s){
     s.emit('sentado', {jugadores:jugadores, nuevo:player});
   });
   s.on('iniciar', function(data){
-    s.broadcast.emit('juegaotro', {turno:data.puesto});
+    s.broadcast.emit('juegaotro', {turno:data.puesto,anterior:false});
     s.emit('turno', {jugador:jugadores[s.id]});
   });
   s.on('valorDado', function(data){
@@ -74,10 +74,10 @@ io.sockets.on('connection', function(s){
       var siguiente = nextId(jugadores,s.id);
       console.log('Turno de '+siguiente);
       //io.sockets.socket(< session id>).send('my message')
-      io.sockets.socket(siguiente).emit('turno',{jugador:jugadores[siguiente]},function(n){
-        n.broadcast.emit('juegaotro', {turno:jugadores[siguiente].puesto});  
+      io.sockets.socket(siguiente).emit('turno',{jugador:jugadores[siguiente]});
+      io.sockets.socket(siguiente).broadcast.emit('juegaotro',{
+        turno:jugadores[siguiente].puesto,anterior:jugadores[s.id].puesto
       });
-      
     } else {
       if ((jugadores[s.id].puntos+data.acumulado) >= 31){
         s.emit('gano', {nick:jugadores[s.id].nick});
@@ -88,6 +88,18 @@ io.sockets.on('connection', function(s){
       }
     }
     s.broadcast.emit('nuevoValorDado', data);
+  });
+  
+  s.on('plantar', function(data){
+    console.log(data);
+    jugadores[s.id].puntos += data.puntos;
+    var siguiente = nextId(jugadores,s.id);
+    console.log('Plantaron, ahora le toca a '+siguiente);
+    io.sockets.socket(siguiente).emit('turno',{jugador:jugadores[siguiente]});
+    io.sockets.socket(siguiente).broadcast.emit('juegaotro',{
+      turno:jugadores[siguiente].puesto,anterior:jugadores[s.id].puesto
+    });
+    s.broadcast.emit('nuevosPuntos',{jugador:jugadores[s.id]});
   });
 });
 
