@@ -28,7 +28,7 @@ app.configure('production', function(){
   app.use(express.errorHandler()); 
 });
 
-var jugadores = Array();
+var jugadores = {};
 
 function tirarDado(){
   return Math.floor(Math.random()*6)+1;
@@ -44,24 +44,44 @@ app.get('/', function(req, res){
 });
 
 io.sockets.on('connection', function(s){
-  s.emit('news', {hello:'world'});
+  var nextId = function(todos,actual){
+    var list = [];
+    var t;
+    for (t in todos){
+      list.push(t);
+    }
+    var i = list.indexOf(actual);
+    ++i;
+    if (i >= list.length){
+      i = 0;
+    }
+    return list[i];
+  };
   s.on('sentarse', function(data){
-    jugadores[data.puesto] = {nick:data.nick,puntos:0,puesto:data.puesto};
-    s.broadcast.emit('sentado', {jugadores:jugadores, nuevo:jugadores[data.puesto]});
-    s.emit('sentado', {jugadores:jugadores, nuevo:jugadores[data.puesto]});
+    var player = {nick:data.nick,puntos:0,puesto:data.puesto};
+    jugadores[s.id] = player;
+    s.broadcast.emit('sentado', {jugadores:jugadores, nuevo:player});
+    s.emit('sentado', {jugadores:jugadores, nuevo:player});
   });
   s.on('iniciar', function(data){
     s.broadcast.emit('juegaotro', {turno:data.puesto});
-    s.emit('turno', {jugador:jugadores[data.puesto]});
+    s.emit('turno', {jugador:jugadores[s.id]});
   });
   s.on('valorDado', function(data){
     if (data.valor == 1){
-      s.broadcast.emit('perdio', {nick:jugadores[data.puesto].nick});
-      s.emit('perdio', {nick:jugadores[data.puesto].nick});
+      s.broadcast.emit('perdio', {nick:jugadores[s.id].nick});
+      s.emit('perdio', {nick:jugadores[s.id].nick});
+      var siguiente = nextId(jugadores,s.id);
+      console.log('Turno de '+siguiente);
+      //io.sockets.socket(< session id>).send('my message')
+      io.sockets.socket(siguiente).emit('turno',{jugador:jugadores[siguiente]},function(n){
+        n.broadcast.emit('juegaotro', {turno:jugadores[siguiente].puesto});  
+      });
+      
     } else {
-      if ((jugadores[data.puesto].puntos+data.acumulado) >= 31){
-        s.emit('gano', {nick:jugadores[data.puesto].nick});
-        s.broadcast.emit('gano', {nick:jugadores[data.puesto].nick});
+      if ((jugadores[s.id].puntos+data.acumulado) >= 31){
+        s.emit('gano', {nick:jugadores[s.id].nick});
+        s.broadcast.emit('gano', {nick:jugadores[s.id].nick});
       } else {
         s.emit('nuevoAcumulado', {acumulado:data.acumulado});
         s.broadcast.emit('nuevoAcumulado', {acumulado:data.acumulado});

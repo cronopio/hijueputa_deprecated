@@ -78,6 +78,7 @@ script
   
   s.on('perdio', function(data){
     alert('El jugador '+data.nick+' perdio el turno');
+    $('#mando').empty()
   });
   
   s.on('nuevoAcumulado', function(data){
